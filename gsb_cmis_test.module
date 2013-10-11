@@ -96,24 +96,8 @@ function _gsb_cmis_test_get_get_document($uuid) {
 
   module_load_include('api.inc', 'cmis');
 
-  $workspace = 'workspace://SpacesStore/';
-
-  $uuid_parts = explode(':', $uuid);
-
-  if (count($uuid_parts) == 3 && $uuid_parts[0] == 'urn' && $uuid_parts[1] == 'uuid') {
-    $object_id = $uuid_parts[2];
-  } else {
-    return null;
-  }
-
-  // $object_id should look something like this:
-  //    'workspace://SpacesStore/cb8e4d68-f959-4457-a2ba-6b795ff88952'  
-
-  $object_id = $workspace . $object_id;
-  dpm($object_id);
-
   $repository = cmis_get_repository();    
-  $object = cmisapi_getProperties($repository->repositoryId, $object_id); 
+  $object = _gsb_cmis_test_get_object($uuid);
   
   try {
     $content = cmisapi_getContentStream($repository->repositoryId, $object->id);
