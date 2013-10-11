@@ -24,21 +24,31 @@ function gsb_cmis_test_form(array $form, array &$form_state) {
   $form['gsb_cmsi_test_objectid'] = array(
     '#type' => 'textfield',
     '#title' => t('Object Id'),
-    '#default_value' => 'urn:uuid:cb8e4d68-f959-4457-a2ba-6b795ff88952'
-  );
+    '#default_value' => 'urn:uuid:e3920f61-a847-41ff-9345-7a0dfd8efb44'
+  );  
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => st('Get Properties'),
     '#submit' => array('gsb_cmis_test_form_submit'),
-  );  
+  );
+  $form['actions']['getdoc'] = array(
+    '#type' => 'submit',
+    '#value' => st('Get Document'),
+    '#submit' => array('gsb_cmis_test_form_submit_getdoc'),
+  );    
   return $form;
 }
 
+function gsb_cmis_test_form_submit_getdoc(array &$form, array &$form_state) {
+
+  $object_id = $form_state['values']['gsb_cmsi_test_objectid'];
+
+  _gsb_cmis_test_get_get_document($object_id);
+
+}
+
 function gsb_cmis_test_form_submit(array &$form, array &$form_state) {
-  
-  module_load_include('api.inc', 'cmis');
-  module_load_include('utils.inc', 'cmis_browser');
   
   $object_id = $form_state['values']['gsb_cmsi_test_objectid'];
 
@@ -51,6 +61,8 @@ function gsb_cmis_test_form_submit(array &$form, array &$form_state) {
 
 function _gsb_cmis_test_get_object($uuid) {
   
+  module_load_include('api.inc', 'cmis');
+
   $workspace = 'workspace://SpacesStore/';
 
   $uuid_parts = explode(':', $uuid);
@@ -75,6 +87,57 @@ function _gsb_cmis_test_get_object($uuid) {
 
   return $object;
 
+}
+
+/**
+ * CMIS document download handler.
+ */
+function _gsb_cmis_test_get_get_document($uuid) {
+
+  module_load_include('api.inc', 'cmis');
+
+  $workspace = 'workspace://SpacesStore/';
+
+  $uuid_parts = explode(':', $uuid);
+
+  if (count($uuid_parts) == 3 && $uuid_parts[0] == 'urn' && $uuid_parts[1] == 'uuid') {
+    $object_id = $uuid_parts[2];
+  } else {
+    return null;
+  }
+
+  // $object_id should look something like this:
+  //    'workspace://SpacesStore/cb8e4d68-f959-4457-a2ba-6b795ff88952'  
+
+  $object_id = $workspace . $object_id;
+  dpm($object_id);
+
+  $repository = cmis_get_repository();    
+  $object = cmisapi_getProperties($repository->repositoryId, $object_id); 
+  
+  try {
+    $content = cmisapi_getContentStream($repository->repositoryId, $object->id);
+  }
+  catch (CMISException $e) {
+    cmis_error_handler('cmis_browser_content_get', $e);
+    drupal_add_http_header('', 'HTTP/1.1 503 Service unavailable');
+    exit();
+  }
+  
+  if (ob_get_level()) {
+    ob_end_clean();
+  }
+
+  drupal_add_http_header('Cache-Control', 'no-cache, must-revalidate');
+  drupal_add_http_header('Content-type:', $object->properties['cmis:contentStreamMimeType']);
+  if ($object->properties['cmis:contentStreamMimeType'] != 'text/html') {
+    drupal_add_http_header('Content-Disposition', 'attachment; filename="'. $object->properties['cmis:name'] .'"');  
+  }
+  
+   
+  print($content);
+
+  exit();
 }
 
 
