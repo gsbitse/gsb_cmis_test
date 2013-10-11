@@ -1,0 +1,80 @@
+<?php
+
+/**
+ * @file
+ * Contains hook implementations and helper functions for GSB CMSI Test
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function gsb_cmis_test_menu() {
+  $items = array();
+  $items['admin/config/gsb/cmsi-test'] = array(
+    'title' => 'CMIS Test',
+    'description' => 'Test CMSI.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('gsb_cmis_test_form'),    
+    'access arguments' => array('access administration pages'),
+  );
+  return $items;
+}
+
+function gsb_cmis_test_form(array $form, array &$form_state) {
+  $form['gsb_cmsi_test_objectid'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Object Id'),
+    '#default_value' => 'urn:uuid:cb8e4d68-f959-4457-a2ba-6b795ff88952'
+  );
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => st('Get Properties'),
+    '#submit' => array('gsb_cmis_test_form_submit'),
+  );  
+  return $form;
+}
+
+function gsb_cmis_test_form_submit(array &$form, array &$form_state) {
+  
+  module_load_include('api.inc', 'cmis');
+  module_load_include('utils.inc', 'cmis_browser');
+  
+  $object_id = $form_state['values']['gsb_cmsi_test_objectid'];
+
+  $object = _gsb_cmis_test_get_object($object_id);
+
+  // Rebuild the form
+  $form_state['rebuild'] = TRUE;   
+
+}
+
+function _gsb_cmis_test_get_object($uuid) {
+  
+  $workspace = 'workspace://SpacesStore/';
+
+  $uuid_parts = explode(':', $uuid);
+
+  if (count($uuid_parts) == 3 && $uuid_parts[0] == 'urn' && $uuid_parts[1] == 'uuid') {
+    $object_id = $uuid_parts[2];
+  } else {
+    return null;
+  }
+
+  // $object_id should look something like this:
+  //    'workspace://SpacesStore/cb8e4d68-f959-4457-a2ba-6b795ff88952'  
+
+  $object_id = $workspace . $object_id;
+  dpm($object_id);
+
+  $repository = cmis_get_repository();    
+  $object = cmisapi_getProperties($repository->repositoryId, $object_id); 
+  
+  dpm($repository);
+  dpm($object);
+
+  return $object;
+
+}
+
+

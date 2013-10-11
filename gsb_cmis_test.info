@@ -1,0 +1,8 @@
+name = GSB CMIS Test
+description = A module to test CMIS
+core = 7.x
+package = GSB
+dependencies[] = cmis
+dependencies[] = cmis_common
+
+
