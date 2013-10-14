@@ -117,7 +117,6 @@ function _gsb_cmis_test_get_get_document($uuid) {
   if ($object->properties['cmis:contentStreamMimeType'] != 'text/html') {
     drupal_add_http_header('Content-Disposition', 'attachment; filename="'. $object->properties['cmis:name'] .'"');  
   }
-  
    
   print($content);
 
