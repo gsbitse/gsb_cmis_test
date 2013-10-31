@@ -24,7 +24,7 @@ function gsb_cmis_test_form(array $form, array &$form_state) {
   $form['gsb_cmsi_test_objectid'] = array(
     '#type' => 'textfield',
     '#title' => t('Object Id'),
-    '#default_value' => 'urn:uuid:e3920f61-a847-41ff-9345-7a0dfd8efb44'
+    '#default_value' => 'urn:uuid:9bc77ab5-b18d-4936-bee0-5b925fcad4cd'
   );  
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -34,24 +34,34 @@ function gsb_cmis_test_form(array $form, array &$form_state) {
   );
   $form['actions']['getdoc'] = array(
     '#type' => 'submit',
-    '#value' => st('Get Document'),
-    '#submit' => array('gsb_cmis_test_form_submit_getdoc'),
+    '#value' => st('Download Document'),
+    '#submit' => array('gsb_cmis_test_form_submit_downloaddoc'),
   );    
+  $form['actions']['getdocurl'] = array(
+    '#type' => 'submit',
+    '#value' => st('Get Document URL'),
+    '#submit' => array('gsb_cmis_test_form_submit_getdoc'),
+  );      
   return $form;
 }
 
 function gsb_cmis_test_form_submit_getdoc(array &$form, array &$form_state) {
 
   $object_id = $form_state['values']['gsb_cmsi_test_objectid'];
+  _gsb_cmis_test_get_document($object_id);
 
-  _gsb_cmis_test_get_get_document($object_id);
+}
+
+function gsb_cmis_test_form_submit_downloaddoc(array &$form, array &$form_state) {
+
+  $object_id = $form_state['values']['gsb_cmsi_test_objectid'];
+  _gsb_cmis_test_download_document($object_id);
 
 }
 
 function gsb_cmis_test_form_submit(array &$form, array &$form_state) {
   
   $object_id = $form_state['values']['gsb_cmsi_test_objectid'];
-
   $object = _gsb_cmis_test_get_object($object_id);
 
   // Rebuild the form
@@ -74,12 +84,13 @@ function _gsb_cmis_test_get_object($uuid) {
   }
 
   // $object_id should look something like this:
-  //    'workspace://SpacesStore/cb8e4d68-f959-4457-a2ba-6b795ff88952'  
+  //    'workspace://SpacesStore/cb8e4d68-f959-4457-a2ba-6b795ff55552'  
 
   $object_id = $workspace . $object_id;
   dpm($object_id);
 
-  $repository = cmis_get_repository();    
+  $repository = cmis_get_repository();
+  cmisapi_getRepositoryInfo();
   $object = cmisapi_getProperties($repository->repositoryId, $object_id); 
   
   dpm($repository);
@@ -92,7 +103,17 @@ function _gsb_cmis_test_get_object($uuid) {
 /**
  * CMIS document download handler.
  */
-function _gsb_cmis_test_get_get_document($uuid) {
+function _gsb_cmis_test_get_document($uuid) {
+
+  $doc_url = gsb_cmis_api_getDocumentURL('default', $uuid);
+  dpm($doc_url);
+
+}
+
+/**
+ * CMIS document download handler.
+ */
+function _gsb_cmis_test_download_document($uuid) {
 
   module_load_include('api.inc', 'cmis');
 
@@ -117,7 +138,6 @@ function _gsb_cmis_test_get_get_document($uuid) {
   if ($object->properties['cmis:contentStreamMimeType'] != 'text/html') {
     drupal_add_http_header('Content-Disposition', 'attachment; filename="'. $object->properties['cmis:name'] .'"');  
   }
-  
    
   print($content);
 
