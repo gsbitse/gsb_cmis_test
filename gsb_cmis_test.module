@@ -24,7 +24,13 @@ function gsb_cmis_test_form(array $form, array &$form_state) {
   $form['gsb_cmsi_test_objectid'] = array(
     '#type' => 'textfield',
     '#title' => t('Object Id'),
-    '#default_value' => 'urn:uuid:9bc77ab5-b18d-4936-bee0-5b925fcad4cd'
+    // cases
+    //'#default_value' => 'urn:uuid:7dd6590d-b53f-41e1-9e9e-e3e31cc14709'
+    // research papers 
+    '#default_value' => 'urn:uuid:f0afc9f2-eefa-49fc-b6b2-5661b1934985'
+    // greg folder on contentqa
+    //'#default_value' => 'urn:uuid:46de00be-f68f-4d90-a05c-cf9213880386'
+    //'#default_value' => 'urn:uuid:9bc77ab5-b18d-4936-bee0-5b925fcad4cd'
   );  
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -41,7 +47,12 @@ function gsb_cmis_test_form(array $form, array &$form_state) {
     '#type' => 'submit',
     '#value' => st('Get Document URL'),
     '#submit' => array('gsb_cmis_test_form_submit_getdoc'),
-  );      
+  );
+  $form['actions']['getrp'] = array(
+    '#type' => 'submit',
+    '#value' => st('Get Docs'),
+    '#submit' => array('gsb_cmis_test_form_submit_research_papers'),
+  );
   return $form;
 }
 
@@ -49,6 +60,13 @@ function gsb_cmis_test_form_submit_getdoc(array &$form, array &$form_state) {
 
   $object_id = $form_state['values']['gsb_cmsi_test_objectid'];
   _gsb_cmis_test_get_document($object_id);
+
+}
+
+function gsb_cmis_test_form_submit_research_papers(array &$form, array &$form_state) {
+
+  $object_id = $form_state['values']['gsb_cmsi_test_objectid'];
+  _gsb_cmis_test_get_documents($object_id);
 
 }
 
@@ -108,6 +126,12 @@ function _gsb_cmis_test_get_document($uuid) {
   $doc_url = gsb_cmis_api_getDocumentURL('default', $uuid);
   dpm($doc_url);
 
+}
+
+function _gsb_cmis_test_get_documents($uuid) {
+
+  $docs = gsb_cmis_api_getDocuments('default', $uuid);
+  dpm($docs);
 }
 
 /**
