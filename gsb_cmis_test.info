@@ -8,3 +8,10 @@ dependencies[] = gsb_cmis_api
 
 
 
+
+
+; Information added by drush on 2013-11-20
+version = "WP-2361-dev"
+project = "gsb_cmis_test"
+datestamp = "1384995242"
+
