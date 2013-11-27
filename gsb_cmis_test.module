@@ -25,7 +25,33 @@ function gsb_cmis_test_menu() {
     //'access arguments' => array('access administration pages'),
     'access callback' => TRUE,
   );  
+  $items['gsb-cmis-test/%gsb_cmis_test_content_type/%'] = array(
+    'title' => 'GSB CMIS Test Process',
+    'description' => 'GSB CMIS Test Process.',
+    'page callback' => 'gsb_cmis_test_content_type_process',
+    'page arguments' => array(1,2),
+    'access arguments' => array(1),
+    'access callback' => 'gsb_cmis_test_process_access',
+  );    
   return $items;
+}
+
+function gsb_cmis_test_process_access($content_type) {
+  return TRUE;
+}
+
+function gsb_cmis_test_content_type_load($content_type) {
+  if ($content_type != 'case') {
+    return FALSE;
+  }
+  $info = module_invoke_all('gsb_cmis_test_process_info');
+  return $info[$content_type];
+}
+
+function gsb_cmis_test_content_type_process($process_info, $uuid) {
+  $doc = gsb_cmis_api_getDocumentObject('default', $uuid);
+  $process_info['callback']($doc, $uuid);
+  return 'hello from gsb_cmis_test_process';
 }
 
 function gsb_cmis_test_alfresco_ping($uuid) {
