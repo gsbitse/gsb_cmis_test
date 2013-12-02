@@ -31,8 +31,14 @@ function gsb_cmis_test_drush_help($command) {
  * Runs the gsb cmsi test doit command
  */
 function drush_gsb_cmis_test_doit() {
-
-  gsb_cmis_test_alfresco_ping('urn:uuid:136cf672-64c4-4521-a713-c91be03f3632');
+  
+  $content_type = 'case';
+  gsb_cmis_test_content_type_initial_load(
+    $content_type, 
+    // my Greg folder on QA
+    //46de00be-f68f-4d90-a05c-cf9213880386
+    'urn:uuid:46de00be-f68f-4d90-a05c-cf9213880386'
+  ); 
   
   // log to the command line with an OK status
   drush_log(dt('Yo... from cmis test doit command'), 'ok');  
